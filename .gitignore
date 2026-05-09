@@ -1,0 +1,20 @@
+# Java
+target/
+*.class
+
+# Maven
+.mvn/
+dependency-reduced-pom.xml
+
+# IntelliJ
+.idea/
+
+# VS Code
+.vscode/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
