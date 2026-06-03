@@ -1,4 +1,4 @@
-# VectorDB Java Rewrite
+# VectorDB Java 
 
 A Java Vector Database + RAG (Retrieval-Augmented Generation) system.
 
