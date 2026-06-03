@@ -1,6 +1,6 @@
 # VectorDB Java Rewrite
 
-A Java rewrite of a C++ Vector Database + RAG (Retrieval-Augmented Generation) system.
+A Java Vector Database + RAG (Retrieval-Augmented Generation) system.
 
 ## Tech Stack
 
@@ -126,25 +126,31 @@ backend/
 
 ---
 
-## Next Step
+### ✅Step 4 — Ollama Integration
+Implemented:
 
-### Step 4 — Ollama Integration
-
-Planned:
-
-* OllamaService
-* StatusController
-* StatusResponse DTO
-* `/status` endpoint
+OllamaService
+StatusController
+StatusResponse DTO
+/status endpoint
 
 Features:
 
-* Check Ollama availability
-* Embedding generation
-* LLM text generation
-* Model status reporting
+Ollama availability check
+Embedding generation support
+LLM text generation support
+Model status reporting
 
----
+Example Response:
+
+{
+  "ollamaAvailable": true,
+  "embedModel": "nomic-embed-text",
+  "genModel": "llama3.2",
+  "docCount": 0,
+  "docDims": 0,
+  "demoCount": 0
+}
 
 ## Long-Term Roadmap
 
