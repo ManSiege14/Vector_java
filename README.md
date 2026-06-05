@@ -1,177 +1,141 @@
 # VectorDB Java 
 
-A Java Vector Database + RAG (Retrieval-Augmented Generation) system.
+A beginner-friendly Java implementation of a Vector Database with document ingestion, semantic search foundations, and local LLM integration using Ollama.
+
+---
 
 ## Tech Stack
 
-* Java 21
-* Spring Boot 3.x
-* Maven
-* JUnit 5
-* Ollama
-* React + Vite (planned)
-
-## Goal
-
-Build a Vector Database + RAG System while learning:
-
-* Backend Engineering
-* Java Fundamentals
-* Spring Boot
-* REST APIs
-* Vector Search
-* Testing with JUnit
-* AI System Architecture
-* Retrieval-Augmented Generation (RAG)
+| Layer | Technology |
+|-------|-----------|
+| Language | Java 21 |
+| Framework | Spring Boot 3.2.5 |
+| Build | Maven |
+| LLM Runtime | Ollama |
+| Embedding Model | nomic-embed-text |
+| Generation Model | llama3.2 |
+| Utilities | Lombok, Jackson, JUnit 5 |
+| Frontend (planned) | React + Vite |
 
 ---
 
-## Project Status
+## Features
 
-### ✅ Step 1 — Spring Boot Project Setup
+### Vector Operations
+- Cosine Distance
+- Euclidean Distance
+- Manhattan Distance
 
-Implemented:
+### Text Processing
+- Fixed-size chunking
+- Configurable overlap
+- Word-based tokenization
 
-* Maven project configuration
-* Spring Boot application entry point
-* Application configuration
+### Ollama Integration
+- Embedding generation
+- LLM text generation
+- Availability checks
+- Configurable timeouts
 
-Files:
+### Vector Store
+- In-memory storage (ConcurrentHashMap)
+- Insert, Delete, List
+- Top-K similarity search
 
-* `pom.xml`
-* `VectorDbApplication.java`
-* `application.properties`
+### Document Pipeline
+```
+Document Upload → Text Chunking → Embedding Generation → Vector Storage → Metadata Storage
+```
 
-Verified:
+---
 
+## API Endpoints
+
+### System
+```
+GET  /status
+```
+
+### Demo Vector Store
+```
+GET    /api/demo/items
+POST   /api/demo/insert
+POST   /api/demo/search
+DELETE /api/demo/delete/{id}
+```
+
+### Document Pipeline
+```
+POST   /api/documents
+GET    /api/documents
+DELETE /api/documents/{id}
+```
+
+### Example — Document Upload
+
+**Request:**
+```json
+POST /api/documents
+{
+  "title": "Java Basics",
+  "text": "Java is a programming language. Spring Boot is built on Java."
+}
+```
+
+**Response:**
+```json
+{
+  "chunks": 1,
+  "ids": [1],
+  "dims": 768
+}
+```
+
+---
+
+## Project Structure
+
+```text
+com.vectordb
+├── config
+├── controller
+├── core
+├── model
+│   └── dto
+├── service
+└── VectorDbApplication
+```
+
+---
+
+## Current Status
+
+✅ Completed through **Step 6 — Document Pipeline**
+
+### Next Milestone — Step 7: RAG Pipeline
+
+```
+Question → Query Embedding → Similarity Search → Top-K Chunks → Prompt Construction → llama3.2 → Answer
+```
+
+---
+
+## Setup
+
+### Prerequisites
 ```bash
+ollama pull nomic-embed-text
+ollama pull llama3.2
+ollama serve
+```
+
+### Run
+```bash
+cd backend
 mvn spring-boot:run
 ```
 
-Backend starts successfully on port 8080.
-
----
-
-### ✅ Step 2 — Vector Math Utilities
-
-Implemented:
-
-* Cosine Similarity
-* Cosine Distance
-* Euclidean Distance
-* Manhattan Distance
-* Vector validation utilities
-* Array/List conversion helpers
-
-Files:
-
-* `core/VectorMath.java`
-* `core/VectorMathTest.java`
-
-Verified:
-
+### Test
 ```bash
-mvn test -Dtest=VectorMathTest
+mvn test
 ```
-
----
-
-### ✅ Step 3 — Text Chunking Engine
-
-Implemented:
-
-* Overlapping text chunking
-* Configurable chunk size
-* Configurable overlap size
-* Word counting utility
-* Input validation
-* Edge case handling
-
-Files:
-
-* `core/TextChunker.java`
-* `core/TextChunkerTest.java`
-
-Default configuration:
-
-```text
-Chunk Size: 250 words
-Overlap: 30 words
-```
-
-Verified:
-
-```bash
-mvn test -Dtest=TextChunkerTest
-```
-
----
-
-## Current Architecture
-
-```text
-backend/
-└── src/
-    ├── main/java/com/vectordb/
-    │   ├── VectorDbApplication.java
-    │   └── core/
-    │       ├── VectorMath.java
-    │       └── TextChunker.java
-    │
-    └── test/java/com/vectordb/
-        └── core/
-            ├── VectorMathTest.java
-            └── TextChunkerTest.java
-```
-
----
-
-### ✅Step 4 — Ollama Integration
-Implemented:
-
-OllamaService
-StatusController
-StatusResponse DTO
-/status endpoint
-
-Features:
-
-Ollama availability check
-Embedding generation support
-LLM text generation support
-Model status reporting
-
-Example Response:
-
-{
-  "ollamaAvailable": true,
-  "embedModel": "nomic-embed-text",
-  "genModel": "llama3.2",
-  "docCount": 0,
-  "docDims": 0,
-  "demoCount": 0
-}
-
-## Long-Term Roadmap
-
-* Vector Store Service
-* Demo Search API
-* Document Pipeline
-* RAG Pipeline
-* React Frontend
-* HNSW Integration
-* Persistence Layer
-* Performance Benchmarking
-
----
-
-## Learning Notes
-
-This project is intentionally being built step-by-step.
-
-Focus areas:
-
-* Understanding every class before moving forward
-* Writing and running tests for each module
-* Learning Spring Boot fundamentals through implementation
-* Understanding vector search and RAG internals instead of only using frameworks
