@@ -29,7 +29,7 @@ class TextChunkerTest {
     // -------------------------------------------------------------------------
     // Null / blank input
     // -------------------------------------------------------------------------
-
+   
     @Test
     void nullTextReturnsEmpty() {
         List<String> result = TextChunker.chunk(null);
