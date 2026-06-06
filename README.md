@@ -1,6 +1,8 @@
-# VectorDB Java 
+# VectorDB Java
 
-A beginner-friendly Java implementation of a Vector Database with document ingestion, semantic search foundations, and local LLM integration using Ollama.
+A from-scratch Java implementation of a Vector Database and Retrieval-Augmented Generation (RAG) system built using Spring Boot and Ollama.
+
+The goal of this project is to understand how modern AI systems work internally by implementing the core mechanics manually — no LangChain, no Spring AI.
 
 ---
 
@@ -11,40 +13,60 @@ A beginner-friendly Java implementation of a Vector Database with document inges
 | Language | Java 21 |
 | Framework | Spring Boot 3.2.5 |
 | Build | Maven |
+| Utilities | Lombok, Jackson, Jakarta Validation |
 | LLM Runtime | Ollama |
 | Embedding Model | nomic-embed-text |
 | Generation Model | llama3.2 |
-| Utilities | Lombok, Jackson, JUnit 5 |
 | Frontend (planned) | React + Vite |
 
 ---
 
 ## Features
 
-### Vector Operations
-- Cosine Distance
-- Euclidean Distance
-- Manhattan Distance
+### Vector Engine
+- Cosine, Euclidean, Manhattan distance
+- Exact KNN search
+- In-memory vector storage (ConcurrentHashMap)
 
 ### Text Processing
-- Fixed-size chunking
-- Configurable overlap
 - Word-based tokenization
+- Configurable chunk size and overlap
+- Chunk metadata tracking
 
 ### Ollama Integration
-- Embedding generation
-- LLM text generation
-- Availability checks
-- Configurable timeouts
+- Embedding generation via nomic-embed-text
+- Text generation via llama3.2
+- Availability checks with dedicated timeout configurations
 
-### Vector Store
-- In-memory storage (ConcurrentHashMap)
-- Insert, Delete, List
-- Top-K similarity search
+### Document Ingestion
+- Upload raw text documents
+- Automatic chunking → embedding → vector storage → metadata storage
 
-### Document Pipeline
+### Retrieval-Augmented Generation (RAG)
+- Query embedding
+- Similarity search
+- Context retrieval
+- Prompt construction
+- Local answer generation via llama3.2
+
+---
+
+## Architecture
+
 ```
-Document Upload → Text Chunking → Embedding Generation → Vector Storage → Metadata Storage
+Document Upload
+    → TextChunker
+    → Embedding Generation
+    → Vector Store
+    → Metadata Store
+
+User Question
+    → Query Embedding
+    → Similarity Search
+    → Context Retrieval
+    → Prompt Builder
+    → llama3.2
+    → Final Answer
 ```
 
 ---
@@ -71,71 +93,100 @@ GET    /api/documents
 DELETE /api/documents/{id}
 ```
 
-### Example — Document Upload
+### RAG Pipeline
+```
+POST   /api/rag/ask
+```
 
 **Request:**
 ```json
-POST /api/documents
 {
-  "title": "Java Basics",
-  "text": "Java is a programming language. Spring Boot is built on Java."
+  "question": "How does binary search work?",
+  "k": 3
 }
 ```
 
 **Response:**
 ```json
 {
-  "chunks": 1,
-  "ids": [1],
-  "dims": 768
+  "question": "How does binary search work?",
+  "answer": "...",
+  "retrievedChunks": [...],
+  "chunkCount": 3
 }
 ```
 
 ---
 
-## Project Structure
+## Current Capabilities
 
-```text
-com.vectordb
-├── config
-├── controller
-├── core
-├── model
-│   └── dto
-├── service
-└── VectorDbApplication
-```
+| Capability | Status |
+|-----------|--------|
+| Upload documents | ✅ |
+| Chunk documents | ✅ |
+| Generate embeddings | ✅ |
+| Store vectors | ✅ |
+| Search vectors | ✅ |
+| Retrieve relevant context | ✅ |
+| Generate grounded answers | ✅ |
 
 ---
 
-## Current Status
+## Current Limitations
 
-✅ Completed through **Step 6 — Document Pipeline**
+- Linear O(N × D) exact search — no ANN indexing
+- In-memory storage only — no persistence
+- No HNSW / IVF indexing
+- No authentication
+- Single-node architecture
 
-### Next Milestone — Step 7: RAG Pipeline
+---
 
-```
-Question → Query Embedding → Similarity Search → Top-K Chunks → Prompt Construction → llama3.2 → Answer
-```
+## Future Improvements
+
+- HNSW Approximate Nearest Neighbor Search
+- Persistent Storage Layer
+- Async Embedding Pipeline
+- Document Re-ranking
+- Hybrid Search (Keyword + Vector)
+- Streaming Responses
+- Web UI
 
 ---
 
 ## Setup
 
-### Prerequisites
 ```bash
+# Pull Ollama models
 ollama pull nomic-embed-text
 ollama pull llama3.2
 ollama serve
-```
 
-### Run
-```bash
+# Run backend
 cd backend
 mvn spring-boot:run
-```
 
-### Test
-```bash
+# Run tests
 mvn test
 ```
+
+---
+
+## Learning Objectives
+
+This project demonstrates understanding of:
+
+- Vector Databases and Embedding Models
+- Similarity Search and KNN
+- Retrieval-Augmented Generation
+- Spring Boot Architecture and REST API Design
+- Local LLM Integration
+- Concurrent Data Structures
+
+---
+
+## Project Status
+
+**Current Milestone:** ✅ Step 7 Complete — Retrieval-Augmented Generation Pipeline
+
+**Next Milestone:** Step 8 — Advanced Retrieval and Production Improvements

@@ -2,7 +2,7 @@ package com.vectordb.service;
 
 import com.vectordb.core.VectorMath;
 import com.vectordb.model.VectorItem;
-import org.springframework.stereotype.Service;
+
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

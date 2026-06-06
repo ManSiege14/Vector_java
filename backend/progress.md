@@ -1,6 +1,6 @@
-# VectorDB Progress Tracker
+# VectorDB Java — Progress Tracker
 
-Java 21 + Spring Boot 3.x backend, React + Vite frontend (planned). Local LLM via Ollama.
+Java 21 + Spring Boot 3.x · Local LLM via Ollama · React + Vite (planned)
 
 ---
 
@@ -52,6 +52,8 @@ TextChunker.chunk(String text, int chunkWords, int overlapWords)
 TextChunker.wordCount(String text)
 ```
 
+Defaults: 250 words per chunk · 30 word overlap
+
 **Verify:** `mvn test -Dtest=TextChunkerTest` → 20 tests pass
 
 ---
@@ -67,12 +69,12 @@ OllamaService.generate(String prompt)  // → String via llama3.2
 OllamaService.isAvailable()            // → boolean, 2s timeout
 ```
 
-**Endpoint:** `GET /status`
+Timeouts: 2s (ping) · 30s (embed) · 180s (generate)
 
 **Verify:**
 ```bash
 curl http://localhost:8080/status
-# { "ollamaAvailable": true, "embedModel": "nomic-embed-text", "genModel": "llama3.2", "docCount": 0, "demoCount": 0 }
+# { "ollamaAvailable": true, "embedModel": "nomic-embed-text", "genModel": "llama3.2", ... }
 ```
 
 ---
@@ -85,11 +87,11 @@ curl http://localhost:8080/status
 ```java
 store.insert(VectorItem item)
 store.delete(String id)
-store.list()                                           // → List<VectorItem>
-store.search(double[] query, int k, String metric)     // → List<SearchResult>, sorted by score
+store.list()                                          // → List<VectorItem>
+store.search(double[] query, int k, String metric)    // → List<SearchResult>, sorted by score
 ```
 
-Storage: ConcurrentHashMap · Metrics: cosine, euclidean, manhattan · Top-K retrieval
+Storage: ConcurrentHashMap · Metrics: cosine, euclidean, manhattan · Exact KNN
 
 ---
 
@@ -105,16 +107,11 @@ POST   /api/demo/search
 DELETE /api/demo/delete/{id}
 ```
 
-Demo dataset: 20 seeded 16D vectors · categories: `cs`, `math`, `food`, `sports`
-
-**Verify:**
-```bash
-curl http://localhost:8080/api/demo/items
-```
+Dataset: 20 seeded 16D vectors · categories: `cs`, `math`, `food`, `sports`
 
 ---
 
-### ✅ Step 6 — Document Pipeline
+### ✅ Step 6 — Document Ingestion Pipeline
 
 **Files:** `model/DocItem.java`, `model/dto/InsertDocumentRequest.java`, `model/dto/response/DocumentListResponse.java`, `service/DocumentService.java`, `controller/DocumentController.java`
 
@@ -130,53 +127,75 @@ GET    /api/documents
 DELETE /api/documents/{id}
 ```
 
-**Verified:**
-- Document upload and chunk generation
-- Embedding creation (768D via nomic-embed-text)
-- Storage and retrieval
-- Ollama failure handling
+**Verified:** Document upload · Multi-chunk ingestion · Embedding generation (768D) · Metadata retrieval · Ollama failure handling
 
 ---
+
+### ✅ Step 7 — Retrieval-Augmented Generation (RAG)
+
+**Files:** `model/dto/RagRequest.java`, `model/dto/response/RagResponse.java`, `service/RagService.java`, `controller/RagController.java`
+
+**Pipeline:**
+```
+Question → OllamaService.embed() → VectorStoreService.search() → Top-K Chunks → Prompt Builder → llama3.2 → Answer
+```
+
+**Endpoint:** `POST /api/rag/ask`
+
+**Request / Response:**
+```json
+// Request
+{ "question": "How does binary search work?", "k": 3 }
+
+// Response
+{ "question": "...", "answer": "...", "retrievedChunks": [...], "chunkCount": 3 }
+```
+
+**Verified:** Query embedding · Context retrieval · Grounded answer generation · End-to-end RAG workflow
+
+---
+
+## Current Architecture
+
+```
+Vector Database Layer  →  VectorMath, VectorStoreService
+Document Layer         →  TextChunker, DocumentService
+AI Layer               →  OllamaService, RagService
+API Layer              →  DemoController, DocumentController, RagController, StatusController
+```
 
 ## Current Package Structure
 
 ```
 com.vectordb
 ├── config          → AppConfig
-├── controller      → StatusController, DemoController, DocumentController
+├── controller      → StatusController, DemoController, DocumentController, RagController
 ├── core            → VectorMath, TextChunker
-├── model
-│   ├── DocItem, VectorItem
-│   └── dto/        → InsertDocumentRequest, InsertVectorRequest, SearchRequest,
-│       response/     SearchResult, SearchResponse, StatusResponse, DocumentListResponse
-├── service         → OllamaService, VectorStoreService, DemoSeederService, DocumentService
+├── model           → DocItem, VectorItem
+│   └── dto/        → InsertDocumentRequest, InsertVectorRequest, RagRequest, SearchRequest,
+│       response/     SearchResult, SearchResponse, StatusResponse, DocumentListResponse, RagResponse
+├── service         → OllamaService, VectorStoreService, DemoSeederService, DocumentService, RagService
 └── VectorDbApplication
 ```
 
 ### Existing Files (do not regenerate)
-`VectorDbApplication.java`, `VectorMath.java`, `VectorMathTest.java`, `TextChunker.java`, `TextChunkerTest.java`, `OllamaService.java`, `StatusController.java`, `StatusResponse.java`, `VectorStoreService.java`, `VectorItem.java`, `AppConfig.java`, `DemoSeederService.java`, `DemoController.java`, `DocItem.java`, `InsertDocumentRequest.java`, `DocumentListResponse.java`, `DocumentService.java`, `DocumentController.java`, `application.properties`, `pom.xml`
+`VectorDbApplication.java`, `VectorMath.java`, `VectorMathTest.java`, `TextChunker.java`, `TextChunkerTest.java`, `OllamaService.java`, `StatusController.java`, `StatusResponse.java`, `VectorStoreService.java`, `VectorItem.java`, `AppConfig.java`, `DemoSeederService.java`, `DemoController.java`, `DocItem.java`, `InsertDocumentRequest.java`, `DocumentListResponse.java`, `DocumentService.java`, `DocumentController.java`, `RagRequest.java`, `RagResponse.java`, `RagService.java`, `RagController.java`, `application.properties`, `pom.xml`
 
 ---
 
-## ➡️ Next Step — Step 7: RAG Pipeline
+## ➡️ Next Step — Step 8: Retrieval Quality & Production Enhancements
 
-**Goal:** Embed a question, retrieve relevant chunks, build a prompt, generate an answer.
+Potential areas:
 
-**Pipeline:**
-```
-Question → Embed Query → Search Similar Chunks → Retrieve Context → Build Prompt → llama3.2 → Answer
-```
-
-**Files to create:**
-
-| File | Purpose |
-|------|---------|
-| `model/dto/RagRequest.java` | Request DTO: question string |
-| `model/dto/response/RagResponse.java` | Response DTO: answer + context chunks used |
-| `service/RagService.java` | Orchestrates retrieval + prompt building + generation |
-| `controller/RagController.java` | REST endpoint |
-
-**Target endpoint:** `POST /api/rag/ask`
+| Topic | Description |
+|-------|-------------|
+| Search Thresholds | Filter low-confidence results by similarity score |
+| Re-ranking | Score chunks by relevance before prompt assembly |
+| Prompt Engineering | Improve answer quality with structured prompts |
+| Persistence Layer | SQLite/H2 — documents survive restart |
+| ANN Indexing | HNSW to replace brute-force O(N×D) search |
+| Async Processing | Non-blocking embedding pipeline |
+| Integration Testing | End-to-end tests for RAG workflow |
 
 ---
 
@@ -190,9 +209,9 @@ Question → Embed Query → Search Similar Chunks → Retrieve Context → Buil
 | 4 — Ollama Integration | ✅ |
 | 5 — Vector Store + Demo API | ✅ |
 | 6 — Document Pipeline | ✅ |
-| 7 — RAG Pipeline | ➡️ Next |
-| 8 — React Frontend | ⬜ |
-| 9 — Polish + Error Handling | ⬜ |
+| 7 — RAG Pipeline | ✅ |
+| 8 — Advanced Retrieval + Production | ➡️ Next |
+| 9 — React Frontend | ⬜ |
 | Future — HNSW, Persistence, Docker | ⬜ |
 
 ---
@@ -205,7 +224,7 @@ Question → Embed Query → Search Similar Chunks → Retrieve Context → Buil
 | `double[]` internally, `List<Double>` at API boundary | Performance inside store, Jackson-serialisable outside |
 | Single `VectorStoreService`, two instances | Same logic reused for 16D demo and 768D document embeddings |
 | Embedding dims discovered dynamically | Not hardcoded; resolved from first Ollama response |
-| Brute-force search first | Correct for all metrics; fast under ~10k vectors; HNSW added later without changing service interface |
+| Brute-force search first | Correct for all metrics; HNSW added later without changing service interface |
 | `application.properties` for all config | No hardcoded values in service code |
 
 ---
