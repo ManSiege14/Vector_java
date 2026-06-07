@@ -1,122 +1,95 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from 'react'
+import { getStatus } from './api'
+import SearchPage from './pages/SearchPage'
+import DocumentsPage from './pages/DocumentsPage'
+import AskAIPage from './pages/AskAIPage'
 
-function App() {
-  const [count, setCount] = useState(0)
+const PAGES = [
+  { id: 'search', label: 'Search' },
+  { id: 'documents', label: 'Documents' },
+  { id: 'ask', label: 'Ask AI' },
+]
+
+export default function App() {
+  const [page, setPage] = useState('search')
+  const [status, setStatus] = useState(null)
+
+  useEffect(() => {
+    async function fetchStatus() {
+      try {
+        const s = await getStatus()
+        setStatus(s)
+      } catch {
+        setStatus(null)
+      }
+    }
+
+    fetchStatus()
+
+    const id = setInterval(fetchStatus, 15000)
+    return () => clearInterval(id)
+  }, [])
+
+  const ollamaOnline = status?.ollamaAvailable ?? false
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      <nav className="sidebar">
+        <div className="logo">
+          <h2>VECTORDB</h2>
+
+          <div className="tagline">
+            Semantic Search & RAG
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
+
+        {PAGES.map((p) => (
+          <button
+            key={p.id}
+            className={page === p.id ? 'active' : ''}
+            onClick={() => setPage(p.id)}
+          >
+            {p.id === 'documents'
+              ? `Documents (${status?.docCount ?? 0})`
+              : p.label}
+          </button>
+        ))}
+
+        <div className="status-bar">
+          <div className="status-title">
+            System Status
+          </div>
+
+          <div>
+            <span className={ollamaOnline ? 'online' : 'offline'}>
+              ●
+            </span>{' '}
+            Ollama {ollamaOnline ? 'Online' : 'Offline'}
+          </div>
+
+          <div className="status-stat">
+            📄 Documents: {status?.docCount ?? 0}
+          </div>
+
+          <div className="status-stat">
+            🔍 Demo Vectors: {status?.demoCount ?? 0}
+          </div>
+        </div>
+      </nav>
+
+      <main className="main">
+        <div className="page-header">
+          <h1>VectorDB</h1>
+
           <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+            Local Semantic Search & Retrieval-Augmented Generation
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {page === 'search' && <SearchPage />}
+        {page === 'documents' && <DocumentsPage />}
+        {page === 'ask' && <AskAIPage />}
+      </main>
+    </div>
   )
 }
-
-export default App

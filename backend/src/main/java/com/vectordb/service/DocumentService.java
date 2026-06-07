@@ -3,6 +3,7 @@ package com.vectordb.service;
 
 import com.vectordb.core.TextChunker;
 import com.vectordb.model.DocItem;
+import com.vectordb.model.VectorItem;
 import com.vectordb.model.dto.request.InsertDocumentRequest;
 import com.vectordb.model.dto.response.DocumentListResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -115,7 +116,29 @@ public class DocumentService {
         boolean metaRemoved   = metadataStore.remove(id) != null;
         return vectorRemoved && metaRemoved;
     }
+    public List<DocItem> search(
+        List<Double> embedding,
+        String metric,
+        int k) {
 
+    List<VectorItem> matches = docStore.search(
+            embedding,
+            k,
+            metric
+    );
+
+    List<DocItem> results = new ArrayList<>();
+
+    for (VectorItem item : matches) {
+        DocItem doc = metadataStore.get(item.getId());
+
+        if (doc != null) {
+            results.add(doc);
+        }
+    }
+
+    return results;
+}
     /**
      * Retrieves DocItem metadata by vector ID.
      * RagService will call this in Step 7 after a similarity search.

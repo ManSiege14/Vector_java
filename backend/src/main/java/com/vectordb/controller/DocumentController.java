@@ -8,7 +8,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.vectordb.model.dto.TextSearchRequest;
+import com.vectordb.service.OllamaService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +22,7 @@ import java.util.Map;
 public class DocumentController {
 
     private final DocumentService documentService;
-
+    private final OllamaService ollamaService;
     /**
      * POST /api/documents
      * Body: { "title": "...", "text": "..." }
@@ -65,7 +68,36 @@ public class DocumentController {
     public List<DocumentListResponse> listDocuments() {
         return documentService.listAll();
     }
+    @PostMapping("/search")
+public ResponseEntity<?> searchDocuments(
+        @RequestBody TextSearchRequest req) {
 
+    if (req.getQuery() == null || req.getQuery().isBlank()) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", "query must not be blank"));
+    }
+
+    double[] raw = ollamaService.embed(req.getQuery());
+
+    if (raw.length == 0) {
+        return ResponseEntity.status(503)
+                .body(Map.of("error", "Ollama unavailable"));
+    }
+
+    List<Double> embedding = new ArrayList<>();
+
+    for (double v : raw) {
+        embedding.add(v);
+    }
+
+    return ResponseEntity.ok(
+            documentService.search(
+                    embedding,
+                    req.getMetric(),
+                    req.getK()
+            )
+    );
+}
     /**
      * DELETE /api/documents/{id}
      * Removes one chunk by vector ID.
