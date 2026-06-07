@@ -49,6 +49,12 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+    <dependency>
+    <groupId>org.apache.pdfbox</groupId>
+    <artifactId>pdfbox</artifactId>
+    <version>3.0.1</version>
+</dependency>
+
         <!-- Spring Boot Test: JUnit 5 + Mockito + MockMvc -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

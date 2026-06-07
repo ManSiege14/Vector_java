@@ -3,10 +3,10 @@ import { askRag } from '../api'
 
 export default function AskAIPage() {
   const [question, setQuestion] = useState('')
-  const [k, setK]               = useState(3)
+  const [k, setK]         = useState(3)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
-  const [result, setResult]     = useState(null)  // { answer, contexts, model }
+  const [result, setResult]     = useState(null)  // Maps to backend RagResponse: { answer, context, model }
   const [history, setHistory]   = useState([])
 
   async function handleAsk(e) {
@@ -64,7 +64,7 @@ export default function AskAIPage() {
             </div>
             <div style={{ paddingTop: 20 }}>
               <button className="btn" type="submit" disabled={loading}>
-                {loading ? 'Thinking...' : 'Ask (Ctrl+Enter)'}
+                {loading ? 'Thinking...' : 'Ask'}
               </button>
             </div>
           </div>
@@ -73,42 +73,61 @@ export default function AskAIPage() {
         {error && <p className="error">{error}</p>}
       </div>
 
-      {/* Current answer */}
+      {/* Current answer & Sources (Step 9B) */}
       {result && (
         <div className="card">
-          <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
-            Model: {result.model ?? 'llm'}
+          {/* Improvement 3: More professional model metadata info */}
+          <div style={{ fontSize: 12, color: '#666', marginBottom: 8, lineHeight: 1.4 }}>
+            Retrieved {result.context?.length ?? 0} chunks<br />
+            Generated using {result.model ? result.model.charAt(0).toUpperCase() + result.model.slice(1) : 'Ollama'}
           </div>
 
-          <div className="answer-box">
+          <h3>Answer</h3>
+          <div
+            style={{
+              whiteSpace: 'pre-wrap',
+              lineHeight: 1.6
+            }}
+          >
             {result.answer}
           </div>
 
-          {/* Retrieved contexts */}
-          {result.contexts?.length > 0 && (
-            <div style={{ marginTop: 16 }}>
-              <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
-                Retrieved {result.contexts.length} context chunk(s):
-              </p>
-              {result.contexts.map((ctx, i) => (
-                <details key={i} style={{ marginBottom: 6 }}>
-                  <summary style={{ fontSize: 12, cursor: 'pointer', color: '#444' }}>
-                    [{i + 1}] {ctx.title ?? `Chunk ${ctx.id}`}
-                    {ctx.distance != null && (
-                      <span style={{ color: '#888', marginLeft: 8 }}>
-                        dist: {ctx.distance.toFixed(4)}
-                      </span>
-                    )}
-                  </summary>
-                  <div style={{
-                    fontSize: 12, color: '#555', padding: '8px 0 0 16px',
-                    lineHeight: 1.5
-                  }}>
-                    {ctx.text ?? ctx.content ?? '(no text)'}
-                  </div>
-                </details>
+          {/* Improvement 1: Dynamic source count heading */}
+          {result.context?.length > 0 && (
+            <>
+              <hr style={{ margin: '20px 0' }} />
+              <h4>Sources ({result.context.length})</h4>
+
+              {result.context.map((doc, index) => (
+                <div
+                  key={doc.id ?? index}
+                  style={{
+                    padding: '12px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    marginBottom: '10px'
+                  }}
+                >
+                  <strong>
+                    [{index + 1}] {doc.title ?? 'Untitled Document'}
+                  </strong>
+                  
+                  {/* Improvement 2: Limited source chunk preview length */}
+                  <p
+                    style={{
+                      marginTop: '8px',
+                      color: '#666'
+                    }}
+                  >
+                    {doc.chunkText 
+                      ? (doc.chunkText.length > 300 
+                          ? doc.chunkText.substring(0, 300) + "..." 
+                          : doc.chunkText)
+                      : '(no text)'}
+                  </p>
+                </div>
               ))}
-            </div>
+            </>
           )}
         </div>
       )}

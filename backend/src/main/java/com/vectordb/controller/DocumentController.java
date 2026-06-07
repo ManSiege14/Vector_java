@@ -8,9 +8,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.vectordb.model.dto.TextSearchRequest;
 import com.vectordb.service.OllamaService;
-
+import com.vectordb.service.PdfService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,7 @@ import java.util.Map;
 @RequestMapping("/api/documents")
 @RequiredArgsConstructor
 public class DocumentController {
-
+    private final PdfService pdfService;
     private final DocumentService documentService;
     private final OllamaService ollamaService;
     /**
@@ -97,6 +99,62 @@ public ResponseEntity<?> searchDocuments(
                     req.getK()
             )
     );
+}
+    @PostMapping(
+        value = "/upload",
+        consumes = "multipart/form-data"
+)
+public ResponseEntity<?> uploadPdf(
+        @RequestParam("file") MultipartFile file,
+        @RequestParam("title") String title) {
+
+    if (file.isEmpty()) {
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", "file is required"));
+    }
+
+    if (!file.getOriginalFilename()
+            .toLowerCase()
+            .endsWith(".pdf")) {
+
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", "must be a PDF"));
+    }
+
+    try {
+
+        String text = pdfService.extractText(file);
+
+        if (text.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "error",
+                            "No text extracted from PDF"
+                    ));
+        }
+
+        InsertDocumentRequest request =
+                new InsertDocumentRequest();
+
+        request.setTitle(title);
+        request.setText(text);
+
+        List<Integer> ids =
+                documentService.insertDocument(request);
+
+        return ResponseEntity.ok(Map.of(
+                "chunks", ids.size(),
+                "ids", ids
+        ));
+
+    } catch (Exception e) {
+
+        return ResponseEntity.internalServerError()
+                .body(Map.of(
+                        "error",
+                        e.getMessage()
+                ));
+    }
 }
     /**
      * DELETE /api/documents/{id}

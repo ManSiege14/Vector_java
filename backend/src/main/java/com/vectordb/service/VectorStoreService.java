@@ -59,7 +59,23 @@ public class VectorStoreService {
     public int size() {
         return store.size();
     }
+    public Map<Integer, VectorItem> getStore() {
+    return store;
+}
 
+public void loadStore(
+        Map<Integer, VectorItem> data
+) {
+    store.clear();
+    store.putAll(data);
+
+    int maxId = data.keySet()
+            .stream()
+            .max(Integer::compareTo)
+            .orElse(0);
+
+    idCounter.set(maxId + 1);
+}
     private void validateDimensions(List<Double> embedding) {
         if (embedding == null || embedding.size() != expectedDims) {
             throw new IllegalArgumentException(

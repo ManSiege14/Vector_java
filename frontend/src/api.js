@@ -36,3 +36,20 @@ export const deleteDocument = (id) =>
 
 export const askRag = ({ question, k = 3 }) =>
   axios.post(`${BASE}/api/rag/ask`, { question, k }).then(r => r.data)
+// PDF UPLOAD 
+export const uploadPdf = (file, title) => {
+  const formData = new FormData()
+
+  formData.append("file", file)
+  formData.append("title", title)
+
+  return axios.post(
+    `${BASE}/api/documents/upload`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    }
+  ).then(r => r.data)
+}
