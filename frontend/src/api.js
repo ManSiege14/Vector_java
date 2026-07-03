@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-const BASE = ''  // Vite proxy handles /api and /status → localhost:8080
-
+//const BASE = ''  Vite proxy handles /api and /status → localhost:8080
+const BASE = import.meta.env.VITE_API_URL || ''
 // ── Status ──────────────────────────────────────────────────────────────────
 
 export const getStatus = () =>
