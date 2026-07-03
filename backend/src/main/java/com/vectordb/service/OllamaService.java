@@ -60,8 +60,8 @@ this.generateClient = builder
      */
     public boolean isAvailable() {
         try {
-            ResponseEntity<Map> res = pingClient.getForEntity(
-                    baseUrl + "/api/tags", Map.class);
+            ResponseEntity<String> res = pingClient.getForEntity(
+                    baseUrl + "/api/tags", String.class);
             return res.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
             log.debug("Ollama unavailable: {}", e.getMessage());

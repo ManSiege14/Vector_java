@@ -1,245 +1,782 @@
-# VectorDB Java — Progress Tracker
+# VectorDB Java — Development Progress
 
-Java 21 + Spring Boot 3.x · Local LLM via Ollama · React + Vite (planned)
-
----
-
-## Completed Steps
+**Project:** VectorDB Java
+**Author:** Mansij
+**Stack:** Java 21 • Spring Boot 3.2 • React + Vite • Ollama • PDFBox
 
 ---
 
-### ✅ Step 1 — Spring Boot Foundation
+# Project Goal
 
-**Files:** `pom.xml`, `VectorDbApplication.java`, `application.properties`
+Build a Retrieval-Augmented Generation (RAG) system completely from scratch to understand how modern AI applications work internally.
 
-- Maven project setup, Spring Boot entry point, base configuration
+The project intentionally avoids frameworks such as LangChain and Spring AI. Every major component—including vector storage, semantic search, document ingestion, prompt construction, and persistence—is implemented manually.
 
-**Verify:**
+---
+
+# Current Status
+
+## Backend
+
+* ✅ Spring Boot REST API
+* ✅ Custom Vector Database
+* ✅ Ollama Integration
+* ✅ Document Pipeline
+* ✅ Semantic Search
+* ✅ Retrieval-Augmented Generation
+* ✅ PDF Upload
+* ✅ JSON Persistence
+* ✅ Startup Recovery
+
+## Frontend
+
+* ✅ React + Vite
+* ✅ Search Page
+* ✅ Documents Page
+* ✅ Ask AI Page
+* ✅ PDF Upload
+* ✅ System Status Dashboard
+
+---
+
+# Completed Milestones
+
+---
+
+# ✅ Step 1 — Spring Boot Foundation
+
+## Goal
+
+Create the backend project structure.
+
+## Implemented
+
+* Maven setup
+* Spring Boot application
+* Configuration management
+* Base REST server
+
+## Verification
+
 ```bash
 mvn spring-boot:run
-curl http://localhost:8080/status
+GET /status
 ```
 
 ---
 
-### ✅ Step 2 — Vector Math Engine
+# ✅ Step 2 — Vector Mathematics
 
-**Files:** `core/VectorMath.java`, `core/VectorMathTest.java`
+## Goal
 
-**Public API:**
-```java
-VectorMath.cosineDistance(double[] a, double[] b)
-VectorMath.cosineSimilarity(double[] a, double[] b)
-VectorMath.euclideanDistance(double[] a, double[] b)
-VectorMath.manhattanDistance(double[] a, double[] b)
-VectorMath.distance(double[] a, double[] b, String metric)  // "cosine"|"euclidean"|"manhattan"
-VectorMath.toArray(List<Double> list)
-VectorMath.toList(double[] arr)
-```
+Implement similarity calculations used by the vector database.
 
-**Verify:** `mvn test -Dtest=VectorMathTest` → 24 tests pass
+## Implemented
 
----
+* Cosine Distance
+* Cosine Similarity
+* Euclidean Distance
+* Manhattan Distance
+* Distance dispatcher
 
-### ✅ Step 3 — Text Chunker
+## Result
 
-**Files:** `core/TextChunker.java`, `core/TextChunkerTest.java`
-
-**Public API:**
-```java
-TextChunker.chunk(String text)                                    // defaults: 250 words, 30 overlap
-TextChunker.chunk(String text, int chunkWords, int overlapWords)
-TextChunker.wordCount(String text)
-```
-
-Defaults: 250 words per chunk · 30 word overlap
-
-**Verify:** `mvn test -Dtest=TextChunkerTest` → 20 tests pass
+Supports multiple search metrics without changing higher-level code.
 
 ---
 
-### ✅ Step 4 — Ollama Integration
+# ✅ Step 3 — Text Chunking
 
-**Files:** `service/OllamaService.java`, `controller/StatusController.java`, `model/dto/response/StatusResponse.java`
+## Goal
 
-**Public API:**
-```java
-OllamaService.embed(String text)       // → double[] via nomic-embed-text
-OllamaService.generate(String prompt)  // → String via llama3.2
-OllamaService.isAvailable()            // → boolean, 2s timeout
+Prepare large documents for embedding.
+
+## Implemented
+
+* Word-based chunking
+* Configurable overlap
+* Word counting
+
+Default:
+
+* 250 words
+* 30 word overlap
+
+---
+
+# ✅ Step 4 — Ollama Integration
+
+## Goal
+
+Connect to local AI models.
+
+## Implemented
+
+Embedding
+
+```
+nomic-embed-text
 ```
 
-Timeouts: 2s (ping) · 30s (embed) · 180s (generate)
+Generation
 
-**Verify:**
-```bash
-curl http://localhost:8080/status
-# { "ollamaAvailable": true, "embedModel": "nomic-embed-text", "genModel": "llama3.2", ... }
+```
+llama3.2
+```
+
+Status monitoring
+
+```
+GET /status
 ```
 
 ---
 
-### ✅ Step 5A — Vector Store
+# ✅ Step 5 — Vector Database
 
-**Files:** `config/AppConfig.java`, `model/VectorItem.java`, `service/VectorStoreService.java`
+## Goal
 
-**Public API:**
-```java
-store.insert(VectorItem item)
-store.delete(String id)
-store.list()                                          // → List<VectorItem>
-store.search(double[] query, int k, String metric)    // → List<SearchResult>, sorted by score
+Implement a custom vector database.
+
+## Implemented
+
+VectorStoreService
+
+Operations
+
+* insert
+* delete
+* list
+* search
+
+Features
+
+* ConcurrentHashMap storage
+* Exact KNN search
+* Cosine distance
+* Euclidean distance
+* Manhattan distance
+
+Two independent stores
+
 ```
-
-Storage: ConcurrentHashMap · Metrics: cosine, euclidean, manhattan · Exact KNN
+demoVectorStore
+docVectorStore
+```
 
 ---
 
-### ✅ Step 5B — Demo API
+# ✅ Step 6 — Document Pipeline
 
-**Files:** `service/DemoSeederService.java`, `controller/DemoController.java` + DTOs
+## Goal
 
-**Endpoints:**
+Store real documents inside the vector database.
+
+Pipeline
+
 ```
-GET    /api/demo/items
-POST   /api/demo/insert
-POST   /api/demo/search
-DELETE /api/demo/delete/{id}
+Document
+
+↓
+
+Chunk
+
+↓
+
+Embedding
+
+↓
+
+Vector Storage
+
+↓
+
+Metadata Storage
 ```
 
-Dataset: 20 seeded 16D vectors · categories: `cs`, `math`, `food`, `sports`
+Implemented
 
----
+* DocumentService
+* DocumentController
+* Metadata store
+* Chunk tracking
 
-### ✅ Step 6 — Document Ingestion Pipeline
+Endpoints
 
-**Files:** `model/DocItem.java`, `model/dto/InsertDocumentRequest.java`, `model/dto/response/DocumentListResponse.java`, `service/DocumentService.java`, `controller/DocumentController.java`
-
-**Pipeline:**
 ```
-Document → TextChunker → OllamaService.embed() → VectorStoreService.insert() → Metadata Store
-```
+POST /api/documents
 
-**Endpoints:**
-```
-POST   /api/documents
-GET    /api/documents
+GET /api/documents
+
 DELETE /api/documents/{id}
 ```
 
-**Verified:** Document upload · Multi-chunk ingestion · Embedding generation (768D) · Metadata retrieval · Ollama failure handling
+---
+
+# ✅ Step 7 — Retrieval-Augmented Generation
+
+Pipeline
+
+```
+Question
+
+↓
+
+Embedding
+
+↓
+
+Vector Search
+
+↓
+
+Top K Chunks
+
+↓
+
+Prompt Builder
+
+↓
+
+llama3.2
+
+↓
+
+Answer
+```
+
+Endpoint
+
+```
+POST /api/rag/ask
+```
+
+Features
+
+* Grounded answers
+* Configurable context size
+* Source chunk retrieval
 
 ---
 
-### ✅ Step 7 — Retrieval-Augmented Generation (RAG)
+# ✅ Step 8 — Search Improvements
 
-**Files:** `model/dto/RagRequest.java`, `model/dto/response/RagResponse.java`, `service/RagService.java`, `controller/RagController.java`
+Implemented
 
-**Pipeline:**
-```
-Question → OllamaService.embed() → VectorStoreService.search() → Top-K Chunks → Prompt Builder → llama3.2 → Answer
-```
-
-**Endpoint:** `POST /api/rag/ask`
-
-**Request / Response:**
-```json
-// Request
-{ "question": "How does binary search work?", "k": 3 }
-
-// Response
-{ "question": "...", "answer": "...", "retrievedChunks": [...], "chunkCount": 3 }
-```
-
-**Verified:** Query embedding · Context retrieval · Grounded answer generation · End-to-end RAG workflow
+* Text query search
+* Search endpoint for frontend
+* Search directly over uploaded documents
+* Multiple distance metrics
+* Improved result handling
 
 ---
 
-## Current Architecture
+# ✅ Step 9 — React Frontend
 
-```
-Vector Database Layer  →  VectorMath, VectorStoreService
-Document Layer         →  TextChunker, DocumentService
-AI Layer               →  OllamaService, RagService
-API Layer              →  DemoController, DocumentController, RagController, StatusController
-```
+Implemented
 
-## Current Package Structure
+React + Vite frontend.
 
-```
-com.vectordb
-├── config          → AppConfig
-├── controller      → StatusController, DemoController, DocumentController, RagController
-├── core            → VectorMath, TextChunker
-├── model           → DocItem, VectorItem
-│   └── dto/        → InsertDocumentRequest, InsertVectorRequest, RagRequest, SearchRequest,
-│       response/     SearchResult, SearchResponse, StatusResponse, DocumentListResponse, RagResponse
-├── service         → OllamaService, VectorStoreService, DemoSeederService, DocumentService, RagService
-└── VectorDbApplication
-```
+Pages
 
-### Existing Files (do not regenerate)
-`VectorDbApplication.java`, `VectorMath.java`, `VectorMathTest.java`, `TextChunker.java`, `TextChunkerTest.java`, `OllamaService.java`, `StatusController.java`, `StatusResponse.java`, `VectorStoreService.java`, `VectorItem.java`, `AppConfig.java`, `DemoSeederService.java`, `DemoController.java`, `DocItem.java`, `InsertDocumentRequest.java`, `DocumentListResponse.java`, `DocumentService.java`, `DocumentController.java`, `RagRequest.java`, `RagResponse.java`, `RagService.java`, `RagController.java`, `application.properties`, `pom.xml`
+* Search
+* Documents
+* Ask AI
+
+Features
+
+* Sidebar navigation
+* Status polling
+* REST API integration
 
 ---
 
-## ➡️ Next Step — Step 8: Retrieval Quality & Production Enhancements
+# ✅ Step 10 — Semantic Search UI
 
-Potential areas:
+Implemented
 
-| Topic | Description |
-|-------|-------------|
-| Search Thresholds | Filter low-confidence results by similarity score |
-| Re-ranking | Score chunks by relevance before prompt assembly |
-| Prompt Engineering | Improve answer quality with structured prompts |
-| Persistence Layer | SQLite/H2 — documents survive restart |
-| ANN Indexing | HNSW to replace brute-force O(N×D) search |
-| Async Processing | Non-blocking embedding pipeline |
-| Integration Testing | End-to-end tests for RAG workflow |
+Search interface
 
----
+Supports
 
-## Roadmap
+* Natural language queries
+* Top-K selection
+* Metric selection
 
-| Step | Status |
-|------|--------|
-| 1 — Spring Boot Setup | ✅ |
-| 2 — VectorMath | ✅ |
-| 3 — TextChunker | ✅ |
-| 4 — Ollama Integration | ✅ |
-| 5 — Vector Store + Demo API | ✅ |
-| 6 — Document Pipeline | ✅ |
-| 7 — RAG Pipeline | ✅ |
-| 8 — Advanced Retrieval + Production | ➡️ Next |
-| 9 — React Frontend | ⬜ |
-| Future — HNSW, Persistence, Docker | ⬜ |
+Displays
+
+* Matching chunks
+* Metadata
+* Delete actions
 
 ---
 
-## Architecture Decisions
+# ✅ Step 11 — PDF Upload
 
-| Decision | Reason |
-|----------|--------|
-| Static utility classes (`VectorMath`, `TextChunker`) | No Spring dependency; fully unit-testable; mirrors original C++ design |
-| `double[]` internally, `List<Double>` at API boundary | Performance inside store, Jackson-serialisable outside |
-| Single `VectorStoreService`, two instances | Same logic reused for 16D demo and 768D document embeddings |
-| Embedding dims discovered dynamically | Not hardcoded; resolved from first Ollama response |
-| Brute-force search first | Correct for all metrics; HNSW added later without changing service interface |
-| `application.properties` for all config | No hardcoded values in service code |
+Implemented
+
+Apache PDFBox integration.
+
+Pipeline
+
+```
+PDF
+
+↓
+
+PdfService
+
+↓
+
+Extract Text
+
+↓
+
+Chunk
+
+↓
+
+Embedding
+
+↓
+
+Vector Store
+```
+
+Frontend
+
+* Upload PDF directly
+* Automatic ingestion
+* Existing document pipeline reused
+
+Endpoint
+
+```
+POST /api/documents/upload
+```
 
 ---
 
-## Quick Reference
+# ✅ Step 12 — Persistence Layer
+
+Goal
+
+Ensure uploaded documents survive backend restarts.
+
+Implemented
+
+PersistenceService
+
+Files
+
+```
+vectors.json
+
+documents.json
+```
+
+Automatic save
+
+* Insert
+* Delete
+
+Automatic recovery
+
+```
+@PostConstruct
+
+↓
+
+Load vectors
+
+↓
+
+Load metadata
+
+↓
+
+Restore memory
+```
+
+Verification
+
+```
+Upload PDF
+
+↓
+
+Restart backend
+
+↓
+
+Documents still available
+
+↓
+
+Search works
+
+↓
+
+Ask AI works
+```
+
+---
+
+# Current Architecture
+
+```
+React Frontend
+
+        │
+
+        ▼
+
+Spring Boot REST API
+
+        │
+
+ ┌──────┼─────────────┐
+
+ ▼      ▼             ▼
+
+Search  Documents     RAG
+
+        │
+
+        ▼
+
+DocumentService
+
+        │
+
+        ▼
+
+TextChunker
+
+        │
+
+        ▼
+
+Ollama Embeddings
+
+        │
+
+        ▼
+
+VectorStoreService
+
+        │
+
+        ▼
+
+PersistenceService
+
+        │
+
+        ▼
+
+vectors.json
+
+documents.json
+```
+
+---
+
+# REST API
+
+## Status
+
+```
+GET /status
+```
+
+---
+
+## Demo Vector Store
+
+```
+GET /api/demo/items
+
+POST /api/demo/insert
+
+POST /api/demo/search
+
+DELETE /api/demo/delete/{id}
+```
+
+---
+
+## Documents
+
+```
+POST /api/documents
+
+POST /api/documents/upload
+
+POST /api/documents/search
+
+GET /api/documents
+
+DELETE /api/documents/{id}
+```
+
+---
+
+## RAG
+
+```
+POST /api/rag/ask
+```
+
+---
+
+# Frontend
+
+Pages
+
+```
+Search
+
+Documents
+
+Ask AI
+```
+
+Capabilities
+
+* Semantic search
+* Upload PDFs
+* Browse documents
+* Ask questions
+* System status
+* Delete documents
+
+---
+
+# Persistence
+
+Files
+
+```
+data/
+
+vectors.json
+
+documents.json
+```
+
+Behavior
+
+```
+Insert
+
+↓
+
+Auto Save
+
+↓
+
+Restart
+
+↓
+
+Auto Load
+
+↓
+
+Application Restored
+```
+
+---
+
+# Folder Structure
+
+```
+backend
+
+config
+
+controller
+
+core
+
+model
+
+service
+
+AppConfig
+
+DocumentService
+
+RagService
+
+PdfService
+
+PersistenceService
+
+OllamaService
+
+VectorStoreService
+
+frontend
+
+pages
+
+SearchPage
+
+DocumentsPage
+
+AskAIPage
+
+api.js
+```
+
+---
+
+# Current Capabilities
+
+* Custom Vector Database
+* Exact KNN Search
+* Multiple Distance Metrics
+* Ollama Embeddings
+* Local LLM
+* PDF Upload
+* Plain Text Upload
+* Automatic Chunking
+* Semantic Search
+* Retrieval-Augmented Generation
+* React Frontend
+* Persistent Storage
+* Startup Recovery
+
+---
+
+# Known Limitations
+
+Current implementation intentionally keeps the architecture simple.
+
+Remaining limitations
+
+* Exact linear search O(N)
+* No Approximate Nearest Neighbor index
+* No retrieval scores in UI
+* No grouped document management
+* No streaming responses
+* JSON persistence only
+* Single-user application
+* No authentication
+* No Docker deployment
+
+---
+
+# Next Development Phase
+
+## Step 13
+
+Retrieval explainability
+
+* Similarity scores
+* Better source ranking
+
+---
+
+## Step 14
+
+Document management
+
+* Group chunks by document
+* Delete complete documents
+* Document statistics
+
+---
+
+## Step 15
+
+UI improvements
+
+* Loading indicators
+* Toast notifications
+* Better upload experience
+* Improved styling
+
+---
+
+## Step 16
+
+Conversation memory
+
+* Multi-turn chat
+* Chat history
+* Context reuse
+
+---
+
+# Long-Term Roadmap
+
+* Approximate Nearest Neighbor Search (HNSW)
+* PostgreSQL + pgvector
+* Hybrid Search
+* Streaming Responses
+* Docker
+* Cloud Deployment
+* User Authentication
+* Admin Dashboard
+
+---
+
+# Major Design Decisions
+
+* No LangChain
+* No Spring AI
+* Manual vector database implementation
+* Manual RAG pipeline
+* Local AI models using Ollama
+* JSON persistence before database integration
+* React frontend separated from backend
+* Reusable services with clear separation of concerns
+
+---
+
+# Quick Commands
+
+## Backend
 
 ```bash
-# Run backend
-cd backend && mvn spring-boot:run
-
-# Run all tests
-mvn test
-
-# Ollama setup
-ollama pull nomic-embed-text
-ollama pull llama3.2
-ollama serve
+cd backend
+mvn spring-boot:run
 ```
+
+## Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Ollama
+
+```bash
+ollama serve
+
+ollama pull nomic-embed-text
+
+ollama pull llama3.2
+```
+
+---
+
+# Current Version
+
+**v0.12**
+
+The project is currently a fully functional local RAG application featuring:
+
+* PDF ingestion
+* Semantic search
+* Local AI responses
+* Persistent storage
+* React frontend
+* Startup recovery
+
+The next phase focuses on improving retrieval quality, document management, and user experience rather than adding core functionality.

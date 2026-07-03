@@ -6,6 +6,7 @@ import com.vectordb.model.DocItem;
 import com.vectordb.model.VectorItem;
 import com.vectordb.model.dto.request.InsertDocumentRequest;
 import com.vectordb.model.dto.response.DocumentListResponse;
+import com.vectordb.model.dto.response.DocumentSummaryResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,8 +52,8 @@ public class DocumentService {
             metadataStore.clear();
             metadataStore.putAll(documents);
 
-            log.info("Loaded {} vectors and {} documents from disk", 
-                    vectors.size(), 
+            log.info("Loaded {} vectors and {} documents from disk",
+                    vectors.size(),
                     documents.size());
         } catch (Exception e) {
             log.error("Failed to load persisted data", e);
@@ -79,7 +80,7 @@ public class DocumentService {
             if (raw.length == 0) {
                 log.warn("Embedding failed at chunk {}/{} for '{}' — aborting batch insertion",
                         i + 1, chunks.size(), title);
-                
+
                 // Save whatever successfully parsed up to this point
                 triggerAutoSave();
                 return insertedIds;
@@ -121,9 +122,9 @@ public class DocumentService {
     public boolean delete(int id) {
         boolean vectorRemoved = docStore.delete(id);
         boolean metaRemoved   = metadataStore.remove(id) != null;
-        
+
         triggerAutoSave();
-        
+
         return vectorRemoved && metaRemoved;
     }
 
@@ -181,5 +182,89 @@ public class DocumentService {
                 .sorted(Comparator.comparingInt(DocItem::getId))
                 .map(this::toListResponse)
                 .collect(Collectors.toList());
+    }
+// ─────────────────────────────────────────────────────────────────────
+    // Step 13 — Document grouping & bulk delete (additive, Step 13 only)
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Groups stored chunks by documentId for the Documents page card view.
+     * Reuses metadataStore — no new storage, no duplication.
+     * Order: documents appear in the order their first chunk was inserted
+     * (vector IDs increase monotonically on insert, so sorting by id
+     * before grouping preserves insertion order).
+     */
+    public List<DocumentSummaryResponse> listGrouped() {
+        List<DocItem> orderedItems = metadataStore.values().stream()
+                .filter(item -> item.getDocumentId() != null)
+                .sorted(Comparator.comparingInt(DocItem::getId))
+                .collect(Collectors.toList());
+
+        Map<String, List<DocItem>> byDocId = new LinkedHashMap<>();
+        for (DocItem item : orderedItems) {
+            byDocId.computeIfAbsent(item.getDocumentId(), k -> new ArrayList<>())
+                    .add(item);
+        }
+
+        List<DocumentSummaryResponse> summaries = new ArrayList<>();
+
+        for (Map.Entry<String, List<DocItem>> entry : byDocId.entrySet()) {
+            String documentId = entry.getKey();
+            List<DocItem> chunks = entry.getValue();
+
+            chunks.sort(Comparator.comparingInt(DocItem::getChunkIndex));
+
+            String baseTitle = stripChunkSuffix(chunks.get(0).getTitle());
+
+            List<DocumentListResponse> chunkResponses = chunks.stream()
+                    .map(this::toListResponse)
+                    .collect(Collectors.toList());
+
+            summaries.add(DocumentSummaryResponse.builder()
+                    .documentId(documentId)
+                    .title(baseTitle)
+                    .totalChunks(chunks.size())
+                    .chunks(chunkResponses)
+                    .build());
+        }
+
+        return summaries;
+    }
+
+    /**
+     * Removes the " [i/n]" chunk-index suffix appended in insertDocument(),
+     * using plain string operations (no regex).
+     * Suffix format is always: " [" + number + "/" + number + "]"
+     */
+    private String stripChunkSuffix(String title) {
+        int bracketStart = title.lastIndexOf(" [");
+        if (bracketStart == -1 || !title.endsWith("]")) {
+            return title;
+        }
+        return title.substring(0, bracketStart);
+    }
+
+    /**
+     * Deletes every chunk belonging to a documentId from docStore and
+     * metadataStore, then persists once via the existing triggerAutoSave()
+     * helper — no changes to persistence logic itself.
+     * Returns the number of chunks removed (0 means the documentId did not exist).
+     */
+    public int deleteDocumentGroup(String documentId) {
+        List<Integer> idsToRemove = metadataStore.values().stream()
+                .filter(item -> item.getDocumentId().equals(documentId))
+                .map(DocItem::getId)
+                .collect(Collectors.toList());
+
+        for (int vectorId : idsToRemove) {
+            docStore.delete(vectorId);
+            metadataStore.remove(vectorId);
+        }
+
+        if (!idsToRemove.isEmpty()) {
+            triggerAutoSave();
+        }
+
+        return idsToRemove.size();
     }
 }
