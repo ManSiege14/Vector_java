@@ -1,292 +1,478 @@
-# VectorDB Java
+# 🚀 VectorDB Java
 
-> A from-scratch Retrieval-Augmented Generation (RAG) system built with Java, Spring Boot, React, and Ollama.
+> A from-scratch Java implementation of a Vector Database and Retrieval-Augmented Generation (RAG) system built with Spring Boot, Ollama and React.
 
-No LangChain. No Spring AI. No vector database libraries.
-
-This project implements the core building blocks of a modern AI retrieval system manually, in order to understand how production RAG pipelines work internally.
+![Java](https://img.shields.io/badge/Java-21-red)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-brightgreen)
+![React](https://img.shields.io/badge/React-18-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
+![Swagger](https://img.shields.io/badge/OpenAPI-Swagger-green)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
 ---
 
 ## Overview
 
-```
-Upload PDF
-   │
-   ▼
-Extract Text
-   │
-   ▼
-Chunk Document
-   │
-   ▼
-Generate Embeddings
-   │
-   ▼
-Store Vectors
-   │
-   ▼
-Semantic Search
-   │
-   ▼
-RAG Answer
-```
+VectorDB Java is a complete Retrieval-Augmented Generation (RAG) system implemented from scratch to understand how modern AI applications work internally.
 
----
+Unlike frameworks that hide the implementation details (LangChain, Spring AI, LlamaIndex), this project manually implements:
 
-## Why This Project?
-
-Modern AI applications rely on Retrieval-Augmented Generation (RAG) to answer questions over private knowledge.
-
-Instead of using frameworks such as LangChhain or Spring AI, this project rebuilds the complete pipeline manually:
-
-- Document ingestion
-- Chunking
+- Vector storage
+- Similarity search
+- Document chunking
 - Embedding generation
-- Vector similarity search
+- Retrieval pipeline
 - Prompt construction
-- Local LLM inference
-- Persistence
+- Local LLM integration
+- REST APIs
+- Modern React frontend
 
-The objective was to understand how each component works internally rather than treating the system as a black box.
+The objective was to build the complete backend architecture first, understand every layer, and then expose it through a production-ready frontend.
 
 ---
 
-## Features
-
-### AI Pipeline
-- PDF Upload
-- Plain Text Upload
-- Automatic Chunking
-- Local Embedding Generation
-- Semantic Search
-- Retrieval-Augmented Generation
-- Local LLM Responses
-
-### Vector Database
-- Custom Vector Store
-- Cosine Distance
-- Euclidean Distance
-- Manhattan Distance
-- Exact KNN Search
+# Live Demo
 
 ### Frontend
-- React + Vite
-- Semantic Search Interface
-- Document Browser
-- Ask AI Interface
-- PDF Upload
-- System Status Dashboard
 
-### Persistence
-- `vectors.json`
-- `documents.json`
-- Automatic Save
-- Startup Recovery
+> https://vector-java.vercel.app
+
+### Backend API
+
+> https://vector-java.onrender.com
+
+### Swagger Documentation
+
+> https://vector-java.onrender.com/swagger-ui/index.html
 
 ---
+
+# Screenshots
 
 ## Architecture
 
+![Architecture](docs/architecture.png)
+
+---
+
+# Features
+
+## Vector Database
+
+- Exact KNN Search
+- Cosine Similarity
+- Euclidean Distance
+- Manhattan Distance
+- ConcurrentHashMap storage
+- Dynamic embedding dimensions
+- Configurable Top-K retrieval
+
+---
+
+## Document Processing
+
+- Upload raw text
+- Upload PDF files
+- Automatic text extraction
+- Intelligent chunking
+- Overlapping chunks
+- Metadata management
+- Persistent storage
+
+---
+
+## Retrieval-Augmented Generation
+
+- Query embedding generation
+- Semantic search
+- Context retrieval
+- Prompt construction
+- Local answer generation
+- Source citations
+- Adjustable retrieval depth
+
+---
+
+## Frontend
+
+- React + Vite
+- Document upload
+- PDF upload
+- Semantic search
+- Ask AI interface
+- Document grouping
+- Bulk delete
+- Responsive dashboard
+
+---
+
+## Backend
+
+- Spring Boot REST API
+- Swagger/OpenAPI documentation
+- Ollama integration
+- Docker support
+- JSON persistence
+- Clean layered architecture
+
+---
+
+# Tech Stack
+
+| Layer | Technology |
+|---------|------------|
+| Language | Java 21 |
+| Backend | Spring Boot |
+| Frontend | React + Vite |
+| Build Tool | Maven |
+| REST | Spring MVC |
+| Documentation | Swagger / OpenAPI |
+| AI Runtime | Ollama |
+| Embeddings | nomic-embed-text |
+| LLM | llama3.2 |
+| PDF Parsing | Apache PDFBox |
+| Persistence | JSON |
+| Deployment | Render + Vercel |
+| Containerization | Docker |
+
+---
+
+# Architecture
+
 ```
-                   React Frontend
-                          │
-──────────────────────────┼──────────────────────────
-                          │
-                 Spring Boot REST API
-                          │
-        ┌─────────────────┼─────────────────┐
-        │                 │                 │
-        ▼                 ▼                 ▼
-DocumentController   DemoController   RagController
-        │                                 │
-        ▼                                 ▼
-DocumentService                   RagService
-        │                                 │
-        ▼                                 ▼
- TextChunker                  Ollama Embedding
-        │                                 │
-        ▼                                 ▼
- VectorStoreService  ◄──────── Similarity Search
-        │
-        ▼
- PersistenceService
-        │
-        ▼
-vectors.json
-documents.json
+                User
+
+                 │
+
+                 ▼
+
+         React Frontend
+        (Vercel Deployment)
+
+                 │
+           REST API (JSON)
+
+                 │
+
+                 ▼
+
+      Spring Boot Backend
+
+ ┌─────────────────────────────┐
+ │        Controllers          │
+ ├─────────────────────────────┤
+ │      Business Services      │
+ ├─────────────────────────────┤
+ │     Vector Search Engine    │
+ ├─────────────────────────────┤
+ │     Document Processing     │
+ ├─────────────────────────────┤
+ │       Ollama Client         │
+ └─────────────────────────────┘
+
+                 │
+
+      ┌──────────┴───────────┐
+
+      ▼                      ▼
+
+ Vector Store          Metadata Store
+
+      │                      │
+
+      └──────────┬───────────┘
+
+                 ▼
+
+         JSON Persistence
+
+                 │
+
+                 ▼
+
+             Ollama
+    (Embeddings + LLM)
 ```
 
 ---
 
-## Technology Stack
-
-| Layer       | Technology       |
-| ----------- | ---------------- |
-| Language    | Java 21          |
-| Backend     | Spring Boot 3.2  |
-| Frontend    | React + Vite     |
-| Build       | Maven            |
-| AI Runtime  | Ollama           |
-| Embeddings  | nomic-embed-text |
-| LLM         | llama3.2         |
-| PDF         | Apache PDFBox    |
-| Persistence | Jackson JSON     |
-| HTTP        | REST APIs        |
-
----
-
-## Project Structure
+# Project Structure
 
 ```
-backend
+VectorDB
 │
-├── config
-├── controller
-├── core
-├── model
+├── backend
+│   ├── controller
+│   ├── service
+│   ├── core
+│   ├── model
+│   ├── config
+│   └── resources
 │
-├── service
-│      DocumentService
-│      RagService
-│      OllamaService
-│      PersistenceService
-│      PdfService
-│      VectorStoreService
+├── frontend
+│   ├── components
+│   ├── pages
+│   ├── api.js
+│   └── assets
 │
-└── resources
-
-frontend
+├── docs
+│   ├── architecture.png
+│   ├── screenshots
+│   └── diagrams
 │
-├── pages
-│      Search
-│      Documents
-│      Ask AI
+├── docker-compose.yml
 │
-├── api.js
-└── App.jsx
+└── README.md
 ```
 
 ---
 
-## System Workflow
+# Retrieval Pipeline
 
 ```
-PDF
- │
- ▼
-PdfService
- │
- ▼
-TextChunker
- │
- ▼
-Ollama Embeddings
- │
- ▼
-Vector Store
- │
- ├────────► Search Page
- │
- ▼
-RagService
- │
- ▼
-Prompt Builder
- │
- ▼
-llama3.2
- │
- ▼
-Answer
+Question
+
+      │
+
+      ▼
+
+Generate Query Embedding
+
+      │
+
+      ▼
+
+Semantic Search
+
+      │
+
+      ▼
+
+Retrieve Top-K Chunks
+
+      │
+
+      ▼
+
+Build Prompt
+
+      │
+
+      ▼
+
+Ollama
+
+      │
+
+      ▼
+
+Grounded Answer
 ```
 
 ---
 
-## REST API
+# Document Pipeline
 
-| Method | Endpoint                | Description                          |
-| ------ | ------------------------ | ------------------------------------- |
-| POST   | `/api/documents/upload`  | Upload a PDF or text document         |
-| GET    | `/api/documents`         | List all stored documents             |
-| GET    | `/api/search/text`       | Semantic search over stored chunks    |
-| POST   | `/api/rag/ask`           | Ask a question using the RAG pipeline |
+```
+Upload PDF
+
+      │
+
+      ▼
+
+Extract Text
+
+      │
+
+      ▼
+
+Chunk Text
+
+      │
+
+      ▼
+
+Generate Embeddings
+
+      │
+
+      ▼
+
+Store Vectors
+
+      │
+
+      ▼
+
+Store Metadata
+
+      │
+
+      ▼
+
+Persist JSON
+```
 
 ---
 
-## Running the Project
+# API Endpoints
 
-### Prerequisites
-- Java 21
-- Maven
-- Node.js + npm
-- [Ollama](https://ollama.com) running locally with `nomic-embed-text` and `llama3.2` pulled
+## System
 
-### Backend
+| Method | Endpoint |
+|---------|----------|
+| GET | /status |
+
+---
+
+## Demo
+
+| Method | Endpoint |
+|---------|----------|
+| GET | /api/demo/items |
+| POST | /api/demo/insert |
+| DELETE | /api/demo/delete/{id} |
+| POST | /api/demo/search |
+
+---
+
+## Documents
+
+| Method | Endpoint |
+|---------|----------|
+| POST | /api/documents |
+| POST | /api/documents/upload |
+| GET | /api/documents |
+| GET | /api/documents/grouped |
+| DELETE | /api/documents/{id} |
+| DELETE | /api/documents/document/{documentId} |
+| POST | /api/documents/search |
+
+---
+
+## RAG
+
+| Method | Endpoint |
+|---------|----------|
+| POST | /api/rag/ask |
+
+---
+
+# Running Locally
+
+## Clone
+
+```bash
+git clone https://github.com/ManSiege14/Vector_java.git
+
+cd Vector_java
+```
+
+---
+
+## Backend
 
 ```bash
 cd backend
+
 mvn spring-boot:run
 ```
 
-### Frontend
+Runs on:
+
+```
+http://localhost:8080
+```
+
+---
+
+## Frontend
 
 ```bash
 cd frontend
+
 npm install
+
 npm run dev
 ```
 
-The backend serves the REST API; the frontend runs on Vite's dev server and consumes it.
+Runs on:
+
+```
+http://localhost:5173
+```
 
 ---
 
-## Current Capabilities
+## Ollama
 
-- ✅ PDF Upload
-- ✅ TXT Upload
-- ✅ Automatic Chunking
-- ✅ Local Embeddings
-- ✅ Semantic Search
-- ✅ Retrieval-Augmented Generation
-- ✅ React Frontend
-- ✅ Startup Recovery
-- ✅ Persistent Vector Storage
-- ✅ REST APIs
+Install Ollama
 
----
+Pull models
 
-## Future Roadmap
+```bash
+ollama pull nomic-embed-text
 
-**Near-term**
-- Step 13 — Retrieval Scores
-- Step 14 — Grouped Document Management
-- Step 15 — UI Polish
-- Step 16 — Conversation Memory
+ollama pull llama3.2
+```
 
-**Future**
-- Docker
-- PostgreSQL + pgvector
-- Hybrid Search
-- HNSW
-- Streaming Responses
-- Authentication
+Run
+
+```bash
+ollama serve
+```
 
 ---
 
-## Learning Outcomes
+# Docker
 
-Building this project provided hands-on experience with:
+```bash
+docker compose up --build
+```
 
-- Vector Databases
+---
+
+# What I Learned
+
+Building this project involved implementing:
+
+- Vector databases
+- Semantic search
+- Embedding models
 - Retrieval-Augmented Generation
-- Embedding Models
-- Similarity Search
-- Spring Boot REST APIs
-- React Frontend Development
-- PDF Processing
-- Local LLM Integration
-- Persistence Design
-- Concurrent Data Structures
+- Spring Boot architecture
+- REST API design
+- Docker containerization
+- Swagger/OpenAPI
+- PDF processing
+- JSON persistence
+- React frontend integration
+- Production deployment
 
 ---
+
+# Future Improvements
+
+- PostgreSQL persistence
+- HNSW Approximate Nearest Neighbor indexing
+- Hybrid Search (BM25 + Vector)
+- Streaming LLM responses
+- Authentication
+- Rate limiting
+- Redis caching
+- Conversation memory
+- Multi-user workspaces
+
+---
+
+# Author
+
+**Mansij**
+
+GitHub
+
+https://github.com/ManSiege14
+
+---
+
+⭐ If you found this project useful, consider giving it a star.

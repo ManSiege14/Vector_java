@@ -42,12 +42,12 @@ public class OllamaService {
         .setReadTimeout(Duration.ofMillis(connectMs))
         .build();
 
-this.embedClient = builder
+        this.embedClient = builder
         .setConnectTimeout(Duration.ofMillis(connectMs))
         .setReadTimeout(Duration.ofMillis(embedMs))
         .build();
 
-this.generateClient = builder
+        this.generateClient = builder
         .setConnectTimeout(Duration.ofMillis(connectMs))
         .setReadTimeout(Duration.ofMillis(generateMs))
         .build();
@@ -59,12 +59,21 @@ this.generateClient = builder
      * Returns true if Ollama is reachable. Fast check — uses 2s timeout.
      */
     public boolean isAvailable() {
+        // Step 2 & Quick Test: Print the URL and verify the base URL
+        log.info("Checking Ollama at {}", baseUrl + "/api/tags");
+        log.info("Base URL: {}", baseUrl);
+
         try {
             ResponseEntity<String> res = pingClient.getForEntity(
                     baseUrl + "/api/tags", String.class);
+            
+            // Quick Test: Print the status code
+            log.info("Status: {}", res.getStatusCode());
+            
             return res.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
-            log.debug("Ollama unavailable: {}", e.getMessage());
+            // Step 1: Don't hide the exception (Log the full stack trace)
+            log.error("Ollama availability check failed", e);
             return false;
         }
     }
