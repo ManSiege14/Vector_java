@@ -1,0 +1,9 @@
+com\vectordb\core\VectorMathTest$EuclideanDistanceTests.class
+com\vectordb\core\TextChunkerTest.class
+com\vectordb\core\VectorMathTest$ConversionTests.class
+com\vectordb\core\VectorMathTest$DistanceDispatchTests.class
+com\vectordb\core\VectorMathTest$ManhattanDistanceTests.class
+com\vectordb\core\VectorMathTest$CosineDistanceTests.class
+com\vectordb\core\VectorMathTest$ValidationTests.class
+com\vectordb\core\VectorMathTest$CosineSimilarityTests.class
+com\vectordb\core\VectorMathTest.class

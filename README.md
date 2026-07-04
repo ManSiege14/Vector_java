@@ -53,6 +53,17 @@ The objective was to build the complete backend architecture first, understand e
 
 ![Architecture](docs/architecture.png)
 
+### Search
+
+![Search](docs/screenshots/Home.png)
+
+### Upload Documents
+
+![Documents](docs/screenshots/documents.png)
+
+### Ask AI
+
+![AskAI](docs/screenshots/askai.png)
 ---
 
 # Features
